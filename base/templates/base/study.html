@@ -1,0 +1,173 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .flashcard {
+        width: 80%; /* Chiều rộng 80% của container */
+        height: 400px;
+        margin: 20px;
+        perspective: 1000px;
+      }
+      .flashcard-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0s;
+        transform-style: preserve-3d;
+      }
+      .flashcard-front, .flashcard-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        border-radius: 8px;
+      }
+      .flashcard-front {
+        background-color: #f8f9fa;
+      }
+      .flashcard-back {
+        background-color: #f8f9fa;
+        transform: rotateY(180deg);
+      }
+      .flipped {
+        transform: rotateY(180deg);
+      }
+      .loading-icon {
+        display: inline-block;
+        margin-left: 10px;
+        border: 2px solid #f3f3f3; /* Light grey */
+        border-top: 2px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 12px;
+        height: 12px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+</style>
+<div class="d-flex flex-column align-items-center">
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front card">
+          <div class="card-body row">
+              <div class="col-md-8">
+                <h5>Definition</h5>
+                <p id="wordDefinition">word.definition</p>
+                <p id="wordMean">word.mean</p>
+                <h5>Examples</h5>
+                <p id="wordExample">word.example|safe</p><br>
+                <p id="wordSynonym"></p>
+                <p id="wordImage"></p>
+              </div>
+              <div class="col-md-4">
+                  <img src="/media/images/words/ronaldo.jpg" class="img-fluid" alt="Responsive image">
+              </div>
+          </div>
+        </div>
+        <div class="flashcard-back card">
+          <div class="card-body">
+            <h5 id="answer" class="card-title">Answer</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div class="d-flex justify-content-between mt-4">
+      <button id="easyButton" class="btn btn-success mx-2">
+        Easy <span id="easyIcon" class="loading-icon d-none"></span>
+      </button>
+      <button id="mediumButton" class="btn btn-warning mx-2">
+        Medium <span id="mediumIcon" class="loading-icon d-none"></span>
+      </button>
+      <button id="hardButton" class="btn btn-danger mx-2">
+        Hard <span id="hardIcon" class="loading-icon d-none"></span>
+      </button>
+    </div>
+  </div>
+  
+  <script>
+
+    const words = JSON.parse('{{ words | escapejs }}')
+
+    // Chuyển đổi đối tượng JSON sang mảng yêu cầu
+    const vocabulary = words.map(item => {
+      return {
+          word: item.fields.word,
+          definition: item.fields.definition,
+      };
+    });
+
+    let currentIndex = 0;
+    let isClickable = true; // Biến để theo dõi trạng thái của các nút
+  
+    function updateFlashcard() {
+      const wordElement = document.getElementById("word");
+      const definitionElement = document.getElementById("definition");
+      const answerElement = document.getElementById("answer");
+  
+      const currentWord = vocabulary[currentIndex];
+      wordElement.textContent = currentWord.word;
+      definitionElement.textContent = currentWord.definition;
+      answerElement.textContent = currentWord.answer;
+    }
+  
+    document.querySelector('.flashcard-inner').addEventListener('click', function() {
+      this.classList.toggle('flipped');
+    });
+  
+    function nextWord() {
+      currentIndex = (currentIndex + 1) % vocabulary.length;
+      document.querySelector('.flashcard-inner').classList.remove('flipped');
+      updateFlashcard();
+    }
+  
+    function handleButtonClick(level, iconId) {
+      if (!isClickable) return; // Nếu đang trong thời gian chờ, không thực hiện hành động
+      isClickable = false; // Ngăn không cho click tiếp
+  
+      // Disable các nút
+      document.getElementById("easyButton").disabled = true;
+      document.getElementById("mediumButton").disabled = true;
+      document.getElementById("hardButton").disabled = true;
+  
+      const icon = document.getElementById(iconId);
+      icon.classList.remove("d-none"); // Hiển thị icon xoay
+  
+      console.log(level + ": " + vocabulary[currentIndex].word); // Lưu hoặc xử lý theo mức độ
+  
+      // Thêm độ trễ 0.5 giây trước khi chuyển sang từ tiếp theo
+      setTimeout(() => {
+        nextWord();
+        icon.classList.add("d-none"); // Ẩn icon xoay
+        isClickable = true; // Cho phép click lại sau khi thời gian chờ kết thúc
+  
+        // Enable lại các nút
+        document.getElementById("easyButton").disabled = false;
+        document.getElementById("mediumButton").disabled = false;
+        document.getElementById("hardButton").disabled = false;
+      }, 500);
+    }
+  
+    document.getElementById("easyButton").addEventListener("click", function() {
+      handleButtonClick("Easy", "easyIcon");
+    });
+  
+    document.getElementById("mediumButton").addEventListener("click", function() {
+      handleButtonClick("Medium", "mediumIcon");
+    });
+  
+    document.getElementById("hardButton").addEventListener("click", function() {
+      handleButtonClick("Hard", "hardIcon");
+    });
+  
+    updateFlashcard(); // Initialize the first word
+  </script>
+{% endblock content %}
