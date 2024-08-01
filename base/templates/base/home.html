@@ -124,45 +124,47 @@
             </div>
         </div>
            
+        {% for list in list_words %}
         <div class="col-lg-4">
             <div class="card card-margin">
                 <div class="card-header no-border">
-                    <h5>Title</h5>
+                    <h5>{{list.title}}</h5>
                 </div>
                 <div class="card-body pt-0">
                     <div class="widget-49">
                         <div class="widget-49-title-wrapper">
                             <div class="widget-49-date-primary">
-                                <span class="widget-49-date-day">8</span>
+                                <span class="widget-49-date-day">{{list.wordReview}}</span>
                             </div>
                             <div class="widget-49-meeting-info">
-                                <span class="widget-49-pro-title">20 words</span>
+                                <span class="widget-49-pro-title">{{list.totalWord}} new | {{list.totalWord}} total</span>
                                 <span class="widget-49-meeting-time">10/1/2000</span>
                             </div>
                         </div>
                         <div class="widget-49-meeting-points">
-                          Hello
+                          {{list.description}}
                         </div>
                         <span>State</span>
                         <div class="progress-stacked">
-                            <div class="progress" role="progressbar" aria-label="Segment one" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100" style="width: 30%">
-                              <div class="progress-bar">2</div>
-                            </div>
-                            <div class="progress" role="progressbar" aria-label="Segment two" aria-valuenow="30" aria-valuemin="0" aria-valuemax="10" style="width: 20%">
-                              <div class="progress-bar bg-warning">3</div>
-                            </div>
-                            <div class="progress" role="progressbar" aria-label="Segment three" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
-                              <div class="progress-bar bg-danger">5 </div>
-                            </div>
+                            <div class="progress" role="progressbar" aria-label="Segment one" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100" style="width: {{list.ratioEasyWord}}%">
+                                <div class="progress-bar">{{list.easyWord}}</div>
+                              </div>
+                              <div class="progress" role="progressbar" aria-label="Segment two" aria-valuenow="30" aria-valuemin="0" aria-valuemax="10" style="width: {{list.ratioMediumWord}}%">
+                                <div class="progress-bar bg-warning">{{list.mediumWord}}</div>
+                              </div>
+                              <div class="progress" role="progressbar" aria-label="Segment three" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: {{list.ratioHardWord}}%">
+                                <div class="progress-bar bg-danger">{{list.hardWord}} </div>
+                              </div>
                           </div>
                         <div class="widget-49-meeting-action">
-                            <a href=""><button type="button" class="btn btn-outline-primary">Study</button></a>
-                            <a href=""><button type="button" class="btn btn-outline-primary">Review</button></a>
+                            <a href="{% url 'study' list.id %}"><button type="button" class="btn btn-outline-primary">Study</button></a>
+                            <a href="{% url 'review' list.id %}"><button type="button" class="btn btn-outline-primary">Review</button></a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        {% endfor %}
           
     </div>
     </div>

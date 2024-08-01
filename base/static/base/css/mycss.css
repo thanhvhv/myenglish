@@ -10,3 +10,65 @@
     font-size: 3rem;
     margin-bottom: 0.5rem;
   }
+
+  /* Review */
+
+.step {
+  display: none;
+}
+.step.active {
+  display: block;
+}
+
+/* Game */
+
+.game-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 20px; /* Space between game and matched cards */
+}
+
+.card-container {
+  max-height: 400px;
+}
+
+.card-game {
+  width: 150px;
+  height: 100px;
+  background-color: #ffffff;
+  border: 2px solid #cccccc;
+  margin: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.card-game.matched {
+  visibility: hidden;
+}
+
+.card-game.clicked {
+  background-color: #ffd700;
+  transform: scale(0.9);
+}
+
+.matched-table {
+  border-collapse: collapse;
+}
+
+.matched-table td {
+  border: 1px solid #cccccc;
+  text-align: center;
+  padding: 5px;
+}
+
+.matched-table .word-column {
+  width: 50%;
+}
+
+.matched-table .definition-column {
+  width: 50%;
+}

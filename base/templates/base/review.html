@@ -1,0 +1,338 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<style>
+    .flashcard {
+        width: 80%; /* Chiều rộng 80% của container */
+        height: 400px;
+        margin: 20px;
+        perspective: 1000px;
+      }
+      .flashcard-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0s;
+        transform-style: preserve-3d;
+      }
+      .flashcard-front, .flashcard-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        display: flex;
+        padding: 20px;
+        border-radius: 8px;
+      }
+      .flashcard-front {
+        background-color: #f8f9fa;
+        justify-content: center;
+        align-items: center;
+      }
+      .flashcard-back {
+        background-color: #f8f9fa;
+        transform: rotateY(180deg);
+      }
+      .flipped {
+        transform: rotateY(180deg);
+      }
+      .loading-icon {
+        display: inline-block;
+        margin-left: 10px;
+        border: 2px solid #f3f3f3; /* Light grey */
+        border-top: 2px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 12px;
+        height: 12px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+</style>
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-pills card-header-pills">
+                <li class="nav-item">
+                    <a class="nav-link step-review active" href="#">Step 1</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link step-review disabled" href="#">Step 2</a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+                <!-- Step 1 -->
+                <div class="step active">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="flashcard">
+                          <div class="flashcard-inner">
+                            <div class="flashcard-front card">
+                              <div class="card-body">
+                                <h1 id="word"></h1>
+                                <p id="type"></p> 
+                                <p id="pronunciation"></p><span id="level" class="badge rounded-pill text-bg-primary"></span>
+                              </div>
+                            </div>
+                            <div class="flashcard-back card">
+                              <div class="card-body row">
+                                <div class="col-md-8">
+                                  <h5>Definition:</h5>
+                                  <p id="id" style="display:none"></p>
+                                  <p id="definition"></p>
+                                  <p id="meanning"></p>
+                                  <h5>Examples:</h5>
+                                  <p id="example"></p><br>
+                                  <h5>Note:</h5>
+                                  <p id="note"></p>
+                                  <h5>Memory level:</h5>
+                                  <p id="memoryLevel"></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <img id="image" src="" class="img-fluid" alt="Responsive image">
+                                </div>
+                                
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      
+                        <div class="d-flex justify-content-between mt-4">
+                          <button id="easyButton" class="btn btn-success mx-2">
+                            Easy <span id="easyIcon" class="loading-icon d-none"></span>
+                          </button>
+                          <button id="mediumButton" class="btn btn-warning mx-2">
+                            Medium <span id="mediumIcon" class="loading-icon d-none"></span>
+                          </button>
+                          <button id="hardButton" class="btn btn-danger mx-2">
+                            Hard <span id="hardIcon" class="loading-icon d-none"></span>
+                          </button>
+                        </div>
+                      </div>
+                    <button id="dissmissButton" class="btn btn-study-card btn-outline-success float-end" onclick="nextStep(1)">
+                    <h3>Next <i class="fa fa-times" aria-hidden="true"></i></h3></button>
+                </div>
+                <!-- Step 2 -->
+                <div class="step">
+                    <h3>Check syntax
+
+                    </h3>
+                    <div class="container my-5">
+                        <div id="vocab-info" class="mb-4">
+                            {% for word in words_query %}
+                            <div class="word-component" data-word="{{ word.word }}" data-definition="{{ word.definition }}" data-example="{{ word.example }}" style="display: none;">
+                                <div class="word-info col-md-8">
+                                    <p><strong>Definition:</strong> <span class="word-definition">{{ word.definition }}</span></p>
+                                    <p><strong>Example:</strong> <span class="word-example">{{ word.example }}</span></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <img id="wordImage" src="{{ word.image }}" class="img-fluid" alt="Responsive image">
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div id="vocab-container" class="mb-3">
+                            <label for="vocab-input" class="form-label">Enter Vocabulary Word:</label>
+                            <input type="text" id="vocab-input" class="form-control" placeholder="Enter word">
+                            <div id="feedback" class="invalid-feedback">
+                                Please enter the correct spelling.
+                            </div>
+                        </div>
+                        <button id="show-answer-btn" class="btn btn-info">Show Answer</button>
+                        <button id="next-step-btn" class="btn btn-success d-none" onclick="nextStep(2)">Next Step</button>
+                        <div id="answer" class="mt-3 d-none">
+                            <strong>Correct Answer: </strong><span id="correct-word"></span>
+                        </div>
+                        <div id="correct-count" class="mt-3">
+                            <strong>Correct Words Count: </strong><span id="correct-count-span">0</span><span>/{{total_word}}</span>
+                        </div>
+                        <div id="badge-container" class="mt-3 d-none">
+                            <span id="correct-badge" class="badge bg-success">You got X words correct!</span>
+                        </div>
+                    </div>
+                    <a href=""><button type="button" class="btn btn-success">Back review</button></a> 
+                </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const words = JSON.parse('{{ words | escapejs }}')
+
+    // Chuyển đổi đối tượng JSON sang mảng yêu cầu
+    const vocabulary = words.map(item => {
+        return {
+            id: item.pk,
+            word: item.fields.word,
+            definition: item.fields.definition,
+            type: item.fields.type,
+            pronunciation: item.fields.pronunciation,
+            level: item.fields.level,
+            meanning: item.fields.meanning,
+            example: item.fields.example,
+            note: item.fields.note,
+            memoryLevel: item.fields.memoryLevel,
+            image: item.fields.image,
+        };
+    });
+
+    let currentIndex = 0;
+    let isClickable = true; // Biến để theo dõi trạng thái của các nút
+
+    function updateFlashcard() {
+        const idElement = document.getElementById("id");
+        const wordElement = document.getElementById("word");
+        const definitionElement = document.getElementById("definition");
+        const typeElement = document.getElementById("type");
+        const pronunciationElement = document.getElementById("pronunciation");
+        const levelElement = document.getElementById("level");
+        const meanningElement = document.getElementById("meanning");
+        const exampleElement = document.getElementById("example");
+        const noteElement = document.getElementById("note");
+        const memoryLevelElement = document.getElementById("memoryLevel");
+        const imageElement = document.getElementById("image");
+
+        const currentWord = vocabulary[currentIndex];
+        idElement.textContent = currentWord.id;
+        wordElement.textContent = currentWord.word;
+        definitionElement.textContent = currentWord.definition;
+        typeElement.textContent = currentWord.type;
+        pronunciationElement.textContent = currentWord.pronunciation;
+        levelElement.textContent = currentWord.level;
+        meanningElement.textContent = currentWord.meanning;
+        exampleElement.textContent = currentWord.example;
+        noteElement.textContent = currentWord.note;
+        memoryLevelElement.textContent = currentWord.memoryLevel;
+        imageElement.src = currentWord.image;
+    }
+
+    document.querySelector('.flashcard-inner').addEventListener('click', function() {
+        this.classList.toggle('flipped');
+    });
+
+    function nextWord() {
+        currentIndex = (currentIndex + 1) % vocabulary.length;
+        document.querySelector('.flashcard-inner').classList.remove('flipped');
+        updateFlashcard();
+    }
+
+    function handleButtonClick(level, iconId) {
+        if (!isClickable) return; // Nếu đang trong thời gian chờ, không thực hiện hành động
+        isClickable = false; // Ngăn không cho click tiếp
+
+        // Disable các nút
+        document.getElementById("easyButton").disabled = true;
+        document.getElementById("mediumButton").disabled = true;
+        document.getElementById("hardButton").disabled = true;
+
+        const icon = document.getElementById(iconId);
+        icon.classList.remove("d-none"); // Hiển thị icon xoay
+
+        console.log(level + ": " + vocabulary[currentIndex].word); // Lưu hoặc xử lý theo mức độ
+
+        // Thêm độ trễ 0.5 giây trước khi chuyển sang từ tiếp theo
+        setTimeout(() => {
+        nextWord();
+        icon.classList.add("d-none"); // Ẩn icon xoay
+        isClickable = true; // Cho phép click lại sau khi thời gian chờ kết thúc
+
+        // Enable lại các nút
+        document.getElementById("easyButton").disabled = false;
+        document.getElementById("mediumButton").disabled = false;
+        document.getElementById("hardButton").disabled = false;
+        }, 500);
+    }
+
+    document.getElementById("easyButton").addEventListener("click", function() {
+        handleButtonClick("Easy", "easyIcon");
+        const idWord = document.getElementById("id").textContent;
+        updateWord("easy", idWord)
+    });
+
+    document.getElementById("mediumButton").addEventListener("click", function() {
+        handleButtonClick("Medium", "mediumIcon");
+        const idWord = document.getElementById("id").textContent;
+        updateWord("medium", idWord)
+    });
+
+    document.getElementById("hardButton").addEventListener("click", function() {
+        handleButtonClick("Hard", "hardIcon");
+        const idWord = document.getElementById("id").textContent;
+        updateWord("hard", idWord)
+    });
+
+    updateFlashcard(); // Initialize the first word
+
+    function updateWord(level, idWord) {
+        fetch('/update_word/', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: new URLSearchParams({'level': level, 'idWord': idWord})
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            return data.subtitleID;
+        })
+        .catch(error => {
+            console.error('There was an error with the fetch operation:', error);
+        });
+        
+    }
+
+        // Function to retrieve CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Check if the cookie contains the specified name
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function nextStep(currentStep) {
+        const steps = document.querySelectorAll('.step');
+        const navLinks = document.querySelectorAll('.step-review');
+        // Hide current step and show next step
+        steps[currentStep - 1].classList.remove('active');
+        steps[currentStep].classList.add('active');
+        
+        // Update nav links
+        navLinks[currentStep - 1].classList.remove('active');
+        navLinks[currentStep - 1].classList.add('disabled');
+        navLinks[currentStep].classList.remove('disabled');
+        navLinks[currentStep].classList.add('active');
+    }
+
+    document.getElementById('multiStepForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        alert('Form submitted!');
+    });
+        
+    </script>
+
+      <script src="{% static 'base/js/review.js' %}"></script>
+      <script src="{% static 'base/js/game-card.js' %}"></script>
+  
+
+{% endblock content %}
